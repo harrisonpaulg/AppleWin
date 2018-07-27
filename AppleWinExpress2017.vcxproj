@@ -39,6 +39,7 @@
     <ClInclude Include="source\Configuration\PageConfigTfe.h" />
     <ClInclude Include="source\Configuration\PageDisk.h" />
     <ClInclude Include="source\Configuration\PageInput.h" />
+    <ClInclude Include="source\Configuration\PageLiron.h" />
     <ClInclude Include="source\Configuration\PageSound.h" />
     <ClInclude Include="source\Configuration\PropertySheet.h" />
     <ClInclude Include="source\Configuration\PropertySheetDefs.h" />
@@ -71,6 +72,7 @@
     <ClInclude Include="source\Harddisk.h" />
     <ClInclude Include="source\Joystick.h" />
     <ClInclude Include="source\Keyboard.h" />
+    <ClInclude Include="source\Liron.h" />
     <ClInclude Include="source\Log.h" />
     <ClInclude Include="source\Memory.h" />
     <ClInclude Include="source\Mockingboard.h" />
@@ -129,10 +131,12 @@
     <ClCompile Include="source\Configuration\PageConfigTfe.cpp" />
     <ClCompile Include="source\Configuration\PageDisk.cpp" />
     <ClCompile Include="source\Configuration\PageInput.cpp" />
+    <ClCompile Include="source\Configuration\PageLiron.cpp" />
     <ClCompile Include="source\Configuration\PageSound.cpp" />
     <ClCompile Include="source\Configuration\PropertySheet.cpp" />
     <ClCompile Include="source\Configuration\PropertySheetHelper.cpp" />
     <ClCompile Include="source\CPU.cpp" />
+    <ClCompile Include="source\Liron.cpp" />
     <ClCompile Include="source\SAM.cpp" />
     <ClCompile Include="source\Debugger\Debug.cpp" />
     <ClCompile Include="source\Debugger\Debugger_Assembler.cpp" />

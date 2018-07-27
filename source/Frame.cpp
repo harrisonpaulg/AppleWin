@@ -72,7 +72,7 @@ static int g_nMaxViewportScale = kDEFAULT_VIEWPORT_SCALE;	// Max scale in Window
 #define  BUTTONY     0
 #define  BUTTONCX    45
 #define  BUTTONCY    45
-#define  BUTTONS     8
+#define  BUTTONS     12
 
 	static HBITMAP g_hCapsLockBitmap[2];
 	static HBITMAP g_hHardDiskBitmap[2];
@@ -393,6 +393,10 @@ static void CreateGdiObjects(void)
 	buttonbitmap[BTN_FULLSCR  ] = (HBITMAP)LOADBUTTONBITMAP(TEXT("FULLSCR_BUTTON"));
 	buttonbitmap[BTN_DEBUG    ] = (HBITMAP)LOADBUTTONBITMAP(TEXT("DEBUG_BUTTON"));
 	buttonbitmap[BTN_SETUP    ] = (HBITMAP)LOADBUTTONBITMAP(TEXT("SETUP_BUTTON"));
+	buttonbitmap[BTN_LIRON1] = (HBITMAP)LOADBUTTONBITMAP(TEXT("LIRON1_BUTTON"));
+	buttonbitmap[BTN_LIRON2] = (HBITMAP)LOADBUTTONBITMAP(TEXT("LIRON2_BUTTON"));
+	buttonbitmap[BTN_LIRON3] = (HBITMAP)LOADBUTTONBITMAP(TEXT("LIRON3_BUTTON"));
+	buttonbitmap[BTN_LIRON4] = (HBITMAP)LOADBUTTONBITMAP(TEXT("LIRON4_BUTTON"));
 
 	//
 
@@ -500,7 +504,12 @@ static void DrawButton (HDC passdc, int number) {
     RECT rect = {1,1,40,40};
     DrawBitmapRect(dc,x+3,y+3,&rect,buttonbitmap[number]);
   }
-  if ((number == BTN_DRIVE1) || (number == BTN_DRIVE2)) {
+  if (	(number == BTN_DRIVE1) ||
+		(number == BTN_DRIVE2) ||
+		(number == BTN_LIRON1) ||
+		(number == BTN_LIRON2) ||
+		(number == BTN_LIRON3) ||
+		(number == BTN_LIRON4)) {
     int  offset = (number == buttondown) << 1;
     RECT rect = {x+offset+3,
                  y+offset+31,
@@ -510,7 +519,9 @@ static void DrawButton (HDC passdc, int number) {
     SetTextColor(dc,RGB(0,0,0));
     SetTextAlign(dc,TA_CENTER | TA_TOP);
     SetBkMode(dc,TRANSPARENT);
-	LPCTSTR pszBaseName = DiskGetBaseName(number-BTN_DRIVE1);
+	LPCTSTR pszBaseName = 	(number < BTN_LIRON1)?
+											DiskGetBaseName(number-BTN_DRIVE1):
+											Liron_DiskGetBaseName(number-BTN_LIRON1);
     ExtTextOut(dc,x+offset+22,rect.top,ETO_CLIPPED,&rect,
                pszBaseName,
                MIN(8,_tcslen(pszBaseName)),
@@ -1026,6 +1037,10 @@ static void DrawStatusArea (HDC passdc, int drawflags)
 		{
 			DrawButton(dc, BTN_DRIVE1);
 			DrawButton(dc, BTN_DRIVE2);
+			DrawButton(dc, BTN_LIRON1);
+			DrawButton(dc, BTN_LIRON2);
+			DrawButton(dc, BTN_LIRON3);
+			DrawButton(dc, BTN_LIRON4);
 		}
 	}
 
@@ -1179,6 +1194,7 @@ LRESULT CALLBACK FrameWndProc (
         DiskDestroy();
         ImageDestroy();
         HD_Destroy();
+		Liron_Destroy();
       }
       PrintDestroy();
       sg_SSC.CommDestroy();
@@ -1197,7 +1213,7 @@ LRESULT CALLBACK FrameWndProc (
       VideoReinitialize();
       break;
 
-    case WM_DROPFILES: {
+    case WM_DROPFILES: { // Liron Drives are not Drag&Drop enabled
       TCHAR filename[MAX_PATH];
       DragQueryFile((HDROP)wparam,0,filename,sizeof(filename));
       POINT point;
@@ -1678,7 +1694,9 @@ LRESULT CALLBACK FrameWndProc (
 			{
 				int iButton = (y-buttony-1)/BUTTONCY;
 				int iDrive = iButton - BTN_DRIVE1;
-				if ((iButton == BTN_DRIVE1) || (iButton == BTN_DRIVE2))
+				if ((iButton == BTN_DRIVE1) || (iButton == BTN_DRIVE2)
+					|| (iButton == BTN_LIRON1) || (iButton == BTN_LIRON2)
+					|| (iButton == BTN_LIRON3) || (iButton == BTN_LIRON4))
 				{
 /*
 					if (KeybGetShiftStatus())
@@ -1983,7 +2001,14 @@ static void ProcessButtonClick(int button, bool bFromButtonUI /*=false*/)
       if (!g_bIsFullScreen)
         DrawButton((HDC)0,button);
       break;
-
+    case BTN_LIRON1:
+    case BTN_LIRON2:
+    case BTN_LIRON3:
+    case BTN_LIRON4:
+      Liron_Select(button-BTN_LIRON1);
+      if (!g_bIsFullScreen)
+        DrawButton((HDC)0,button);
+      break;
     case BTN_DRIVESWAP:
       DiskDriveSwap();
       break;
@@ -2046,7 +2071,8 @@ void ProcessDiskPopupMenu(HWND hwnd, POINT pt, const int iDrive)
 	//TODO: A directory is open if an empty path to CiderPress is set. This has to be fixed.
 
 	std::string filename1= "\"";
-	filename1.append( DiskGetDiskPathFilename(iDrive) );
+	(iDrive < 2) 	? filename1.append( DiskGetDiskPathFilename(iDrive))
+						: filename1.append( Liron_GetFullName(iDrive - 3));
 	filename1.append("\"");
 	std::string sFileNameEmpty = "\"";
 	sFileNameEmpty.append("\"");
@@ -2068,16 +2094,16 @@ void ProcessDiskPopupMenu(HWND hwnd, POINT pt, const int iDrive)
 	// Check menu depending on current floppy protection
 	{
 		int iMenuItem = ID_DISKMENU_WRITEPROTECTION_OFF;
-		if (DiskGetProtect( iDrive ))
+		if ((iDrive < 2) ? DiskGetProtect( iDrive ) : Liron_GetProtect(iDrive - 3))
 			iMenuItem = ID_DISKMENU_WRITEPROTECTION_ON;
 
 		CheckMenuItem(hmenu, iMenuItem, MF_CHECKED);
 	}
 
-	if (Disk_IsDriveEmpty(iDrive))
+	if ((iDrive < 2) ? Disk_IsDriveEmpty(iDrive) : Liron_IsDriveUnplugged(iDrive - 3))
 		EnableMenuItem(hmenu, ID_DISKMENU_EJECT, MF_GRAYED);
 
-	if (Disk_ImageIsWriteProtected(iDrive))
+	if ((iDrive < 2) ? Disk_ImageIsWriteProtected(iDrive) : Liron_ImageIsWriteProtected(iDrive - 3))
 	{
 		// If image-file is read-only (or a gzip) then disable these menu items
 		EnableMenuItem(hmenu, ID_DISKMENU_WRITEPROTECTION_ON, MF_GRAYED);
@@ -2093,13 +2119,13 @@ void ProcessDiskPopupMenu(HWND hwnd, POINT pt, const int iDrive)
 		, hwnd, NULL );
 
 	if (iCommand == ID_DISKMENU_EJECT)
-		DiskEject( iDrive );
+		(iDrive < 2) ? DiskEject( iDrive ) : Liron_Unplug(iDrive - 3);
 	else
 	if (iCommand == ID_DISKMENU_WRITEPROTECTION_ON)
-		DiskSetProtect( iDrive, true );
+		(iDrive < 2) ? DiskSetProtect( iDrive, true ) : Liron_SetProtect( iDrive - 3, true );
 	else
 	if (iCommand == ID_DISKMENU_WRITEPROTECTION_OFF)
-		DiskSetProtect( iDrive, false );
+		(iDrive < 2) ? DiskSetProtect( iDrive, false ) : Liron_SetProtect( iDrive - 3, false );
 	else
 	if (iCommand == ID_DISKMENU_SENDTO_CIDERPRESS)
 	{
@@ -2108,7 +2134,7 @@ void ProcessDiskPopupMenu(HWND hwnd, POINT pt, const int iDrive)
 													"Please install CiderPress.\n"
 													"Otherwise set the path to CiderPress from Configuration->Disk.";
 
-		DiskFlushCurrentTrack(iDrive);
+		if (iDrive < 2) DiskFlushCurrentTrack(iDrive);
 
 		//if(!filename1.compare("\"\"") == false) //Do not use this, for some reason it does not work!!!
 		if(!filename1.compare(sFileNameEmpty) )
@@ -2385,6 +2411,22 @@ static void SetupTooltipControls(void)
 	SendMessage(tooltipwindow, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
 	toolinfo.uId = 1;
 	toolinfo.rect.top    = BUTTONY+BTN_DRIVE2*BUTTONCY+1;
+	toolinfo.rect.bottom = toolinfo.rect.top+BUTTONCY;
+	SendMessage(tooltipwindow, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
+	toolinfo.uId = 2;
+	toolinfo.rect.top    = BUTTONY+BTN_LIRON1*BUTTONCY+1;
+	toolinfo.rect.bottom = toolinfo.rect.top+BUTTONCY;
+	SendMessage(tooltipwindow, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
+	toolinfo.uId = 3;
+	toolinfo.rect.top    = BUTTONY+BTN_LIRON2*BUTTONCY+1;
+	toolinfo.rect.bottom = toolinfo.rect.top+BUTTONCY;
+	SendMessage(tooltipwindow, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
+	toolinfo.uId = 4;
+	toolinfo.rect.top    = BUTTONY+BTN_LIRON3*BUTTONCY+1;
+	toolinfo.rect.bottom = toolinfo.rect.top+BUTTONCY;
+	SendMessage(tooltipwindow, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
+	toolinfo.uId = 5;
+	toolinfo.rect.top    = BUTTONY+BTN_LIRON4*BUTTONCY+1;
 	toolinfo.rect.bottom = toolinfo.rect.top+BUTTONCY;
 	SendMessage(tooltipwindow, TTM_ADDTOOL, 0, (LPARAM)&toolinfo);
 }

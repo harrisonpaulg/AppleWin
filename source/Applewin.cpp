@@ -689,6 +689,16 @@ void LoadConfiguration(void)
 	HD_LoadLastDiskImage(HARDDISK_1);
 	HD_LoadLastDiskImage(HARDDISK_2);
 
+	RegLoadString(TEXT(REG_PREFS), TEXT(REGVALUE_PREF_LIRON_START_DIR), 1, szFilename, MAX_PATH);
+	if (szFilename[0] == 0)
+		GetCurrentDirectory(sizeof(szFilename), szFilename);
+	SetCurrentImageDir(szFilename);
+
+	Liron_LoadLastDiskImage(Liron_1);
+	Liron_LoadLastDiskImage(Liron_2);
+	Liron_LoadLastDiskImage(Liron_3);
+	Liron_LoadLastDiskImage(Liron_4);
+	
 	//
 
 	// Current/Starting Dir is the "root" of where the user keeps his disk images

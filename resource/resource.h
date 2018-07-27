@@ -48,6 +48,22 @@
 #define IDC_CHECK_CONFIRM_REBOOT        146
 #define IDR_TK3000_2E_ROM               147
 #define IDR_TKCLOCK_FW                  148
+#define IDD_PROPPAGE_LIRON	149
+#define IDR_LIRON_FW				150
+#define IDC_COMBO_LIRON1		151
+#define IDC_COMBO_LIRON2		152
+#define IDC_COMBO_LIRON3		153
+#define IDC_COMBO_LIRON4		154
+#define IDC_LIRON_ENABLE		155
+#define IDC_EDIT_LIRON1			156
+#define IDC_EDIT_LIRON2			157
+#define IDC_EDIT_LIRON3			158
+#define IDC_EDIT_LIRON4			159
+#define IDC_LIRON1					160
+#define IDC_LIRON2					161
+#define IDC_LIRON3					162
+#define IDC_LIRON4					163
+
 #define IDC_KEYB_BUFFER_ENABLE          1005
 #define IDC_SAVESTATE                   1006
 #define IDC_SAVESTATE_ON_EXIT           1007

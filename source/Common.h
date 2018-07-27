@@ -50,9 +50,13 @@ enum AppMode_e
 #define  BTN_DRIVE1        2
 #define  BTN_DRIVE2        3
 #define  BTN_DRIVESWAP     4
-#define  BTN_FULLSCR       5
-#define  BTN_DEBUG         6
-#define  BTN_SETUP         7
+#define  BTN_LIRON1		5
+#define  BTN_LIRON2		6
+#define  BTN_LIRON3		7
+#define  BTN_LIRON4		8
+#define  BTN_FULLSCR       9
+#define  BTN_DEBUG         10
+#define  BTN_SETUP         11
 
 // TODO: Move to StringTable.h
 #define	TITLE_APPLE_2			TEXT("Apple ][ Emulator")
@@ -81,6 +85,7 @@ enum AppMode_e
 #define  REGVALUE_SAVESTATE_FILENAME "Save State Filename"
 #define  REGVALUE_SAVE_STATE_ON_EXIT "Save State On Exit"
 #define  REGVALUE_HDD_ENABLED        "Harddisk Enable"
+#define  REGVALUE_LIRON_ENABLED        "Liron Enable"
 #define  REGVALUE_JOYSTICK0_EMU_TYPE		"Joystick0 Emu Type v3"	// GH#434: Added at 1.26.3.0 (previously was "Joystick0 Emu Type")
 #define  REGVALUE_JOYSTICK1_EMU_TYPE		"Joystick1 Emu Type v3"	// GH#434: Added at 1.26.3.0 (previously was "Joystick1 Emu Type")
 #define  REGVALUE_OLD_JOYSTICK0_EMU_TYPE2	"Joystick0 Emu Type"	// GH#434: Deprecated from 1.26.3.0 (previously was "Joystick 0 Emulation")
@@ -132,6 +137,11 @@ enum AppMode_e
 #define REGVALUE_PREF_HDV_START_DIR  "HDV Starting Directory"
 #define REGVALUE_PREF_LAST_HARDDISK_1 "Last Harddisk Image 1"
 #define REGVALUE_PREF_LAST_HARDDISK_2 "Last Harddisk Image 2"
+#define REGVALUE_PREF_LIRON_START_DIR  "Liron Starting Directory"
+#define REGVALUE_PREF_LAST_LIRON_1	 "Last Liron Image 1"
+#define REGVALUE_PREF_LAST_LIRON_2	 "Last Liron Image 2"
+#define REGVALUE_PREF_LAST_LIRON_3	 "Last Liron Image 3"
+#define REGVALUE_PREF_LAST_LIRON_4	 "Last Liron Image 4"
 
 #define WM_USER_BENCHMARK	WM_USER+1
 #define WM_USER_RESTART		WM_USER+2

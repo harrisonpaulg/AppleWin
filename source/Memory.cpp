@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Harddisk.h"
 #include "Joystick.h"
 #include "Keyboard.h"
+#include "Liron.h"
 #include "Log.h"
 #include "Memory.h"
 #include "Mockingboard.h"
@@ -1420,10 +1421,14 @@ void MemInitializeIO(void)
 	{
 		ConfigureSoftcard(pCxRomPeripheral, 5);		// $C500 : Z80 card
 	}
-        else
-         if (g_Slot5 == CT_SAM)
-          ConfigureSAM(pCxRomPeripheral, 5);		// $C500 : Z80 card
-
+	else if (g_Slot5 == CT_SAM)	
+	{
+		ConfigureSAM(pCxRomPeripheral, 5);		// $C500 : S.A.M.
+	}
+	else if (g_Slot5 == CT_Liron)	
+	{
+		Liron_Load_Rom(pCxRomPeripheral, 5);		// $C500 : Liron Disk Controller
+	}
 	DiskLoadRom(pCxRomPeripheral, 6);				// $C600 : Disk][ f/w
 	HD_Load_Rom(pCxRomPeripheral, 7);				// $C700 : HDD f/w
 

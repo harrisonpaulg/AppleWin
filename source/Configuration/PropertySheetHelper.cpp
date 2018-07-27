@@ -422,6 +422,7 @@ void CPropertySheetHelper::SaveCurrentConfig(void)
 	m_ConfigOld.m_Slot[4] = g_Slot4;
 	m_ConfigOld.m_Slot[5] = g_Slot5;
 	m_ConfigOld.m_bEnableHDD = HD_CardIsEnabled();
+	m_ConfigOld.m_bEnableLiron = Liron_CardIsEnabled();
 	m_ConfigOld.m_bEnableTheFreezesF8Rom = sg_PropertySheet.GetTheFreezesF8Rom();
 
 	// Reset flags each time:
@@ -440,6 +441,7 @@ void CPropertySheetHelper::RestoreCurrentConfig(void)
 	g_Slot4 = m_ConfigOld.m_Slot[4];
 	g_Slot5 = m_ConfigOld.m_Slot[5];
 	HD_SetEnabled(m_ConfigOld.m_bEnableHDD);
+	Liron_SetEnabled(m_ConfigOld.m_bEnableLiron);
 	sg_PropertySheet.SetTheFreezesF8Rom(m_ConfigOld.m_bEnableTheFreezesF8Rom);
 }
 
@@ -499,6 +501,9 @@ bool CPropertySheetHelper::HardwareConfigChanged(HWND hWnd)
 
 		if (CONFIG_CHANGED(m_bEnableHDD))
 			strMsgMain += ". Harddisk(s) have been plugged/unplugged\n";
+
+		if (CONFIG_CHANGED(m_bEnableLiron))
+			strMsgMain += ". Liron controller has been plugged/unplugged\n";
 
 		if (CONFIG_CHANGED(m_bEnableTheFreezesF8Rom))
 			strMsgMain += ". F8 ROM changed (The Freeze's F8 Rom)\n";
@@ -582,6 +587,8 @@ std::string CPropertySheetHelper::GetCardName(const SS_CARDTYPE CardType)
 		return "Echo";
 	case CT_SAM:			// Soundcard: Software Automated Mouth
 		return "SAM";
+	case CT_Liron:
+		return "Liron";
 	default:
 		return "Unknown";
 	}

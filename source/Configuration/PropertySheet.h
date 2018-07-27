@@ -6,6 +6,7 @@
 #include "PageInput.h"
 #include "PageSound.h"
 #include "PageDisk.h"
+#include "PageLiron.h"
 #include "PageAdvanced.h"
 
 class CPropertySheet : public IPropertySheet
@@ -16,6 +17,7 @@ public:
 		m_PageInput(m_PropertySheetHelper),
 		m_PageSound(m_PropertySheetHelper),
 		m_PageDisk(m_PropertySheetHelper),
+		m_PageLiron(m_PropertySheetHelper),
 		m_PageAdvanced(m_PropertySheetHelper)
 	{
 	}
@@ -54,5 +56,6 @@ private:
 	CPageInput m_PageInput;
 	CPageSound m_PageSound;
 	CPageDisk m_PageDisk;
+	CPageLiron m_PageLiron;
 	CPageAdvanced m_PageAdvanced;
 };

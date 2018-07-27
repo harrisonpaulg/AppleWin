@@ -4,6 +4,7 @@
 #include "../CPU.h"
 #include "../DiskImage.h"	// Disk_Status_e
 #include "../Harddisk.h"	// HD_CardIsEnabled()
+#include "../Liron.h"
 
 class CConfigNeedingRestart
 {
@@ -14,6 +15,7 @@ public:
 		m_uSaveLoadStateMsg(0)
 	{
 		m_bEnableHDD = HD_CardIsEnabled();
+		m_bEnableLiron = Liron_CardIsEnabled();
 		m_bEnableTheFreezesF8Rom = bEnableTheFreezesF8Rom;
 		memset(&m_Slot, 0, sizeof(m_Slot));
 		m_SlotAux = CT_Empty;
@@ -27,6 +29,7 @@ public:
 		m_CpuType = other.m_CpuType;
 		memcpy(m_Slot, other.m_Slot, sizeof(m_Slot));
 		m_bEnableHDD = other.m_bEnableHDD;
+		m_bEnableLiron = other.m_bEnableLiron;
 		m_bEnableTheFreezesF8Rom = other.m_bEnableTheFreezesF8Rom;
 		m_uSaveLoadStateMsg = other.m_uSaveLoadStateMsg;
 		return *this;
@@ -38,6 +41,7 @@ public:
 				m_CpuType == other.m_CpuType &&
 				memcmp(m_Slot, other.m_Slot, sizeof(m_Slot)) == 0 &&
 				m_bEnableHDD == other.m_bEnableHDD &&
+				m_bEnableLiron == other.m_bEnableLiron &&
 				m_bEnableTheFreezesF8Rom == other.m_bEnableTheFreezesF8Rom &&
 				m_uSaveLoadStateMsg == other.m_uSaveLoadStateMsg;
 	}
@@ -52,6 +56,7 @@ public:
 	SS_CARDTYPE m_Slot[NUM_SLOTS];	// 0..7
 	SS_CARDTYPE m_SlotAux;
 	bool m_bEnableHDD;
+	bool m_bEnableLiron;
 	UINT m_bEnableTheFreezesF8Rom;
 	UINT m_uSaveLoadStateMsg;
 };

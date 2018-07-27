@@ -1,0 +1,192 @@
+CardSlot = $5
+CardPage = $C5
+CH = $0024 
+CV = $0025 
+ZeroPage = $0040 
+CMDCode = $0042 
+CMDUnit = $0043 
+Buffer = $0054 
+Slot = $0058 
+ProFLAG = $0478 
+SHTemp1 = $05F8 
+SHTemp2 = $0678 
+MSlot = $07F8 
+BOOT_SECT = $0800 
+OS = $0801 
+ProDOSEx = $C0D0 
+SmartPortEx = $C0D1 
+ret_Flags = $C0DC 
+ret_Y = $C0DD 
+ret_X = $C0DE 
+ret_A = $C0DF 
+BASIC = $E000
+VTAB = $FC22
+COUT = $FDED
+SETKBD = $FE89
+SETVID = $FE93 
+
+*=$C500
+SLOT5
+	LDX	#$20
+	LDX	#0
+	LDX	#3
+	CMP	#0
+	BCS	bootcase5
+ProDOS_EP
+	SEC
+	BCS	Common_EP
+SmartPort_EP
+	CLC
+Common_EP
+	LDX	#CardSlot
+	ROR	ProFLAG,X
+	CLC
+bootcase5
+	CLD
+	LDX	#CardPage
+	STX	MSlot
+	LDX	#CardSlot
+	BCC	atentry
+	BCS	BootC
+	
+atentry ; x = slot
+	TXA
+	TAY
+	LDA	ProFLAG,Y
+	BMI	SkipAdjustSPtr
+AdjustSPtr
+	PLA
+	STA	SHTemp1,Y
+	CLC
+	ADC	#3
+	TAX
+	PLA
+	STA	SHTemp2,Y
+	ADC	#0
+	PHA
+	TXA
+	PHA
+SkipAdjustSPtr
+	PHP
+	SEI
+	LDX	#$1B ;lenzeropageusage-1
+SaveZeroPage
+	LDA ZeroPage,X
+	PHA
+	DEX
+	BPL SaveZeroPage
+	STY	Slot
+	LDA	ProFLAG,Y
+	BMI	SkipSPortCopy
+SPortCopy
+	LDA	SHTemp1,Y
+	STA	Buffer
+	LDA	SHTemp2,Y
+	STA	Buffer+1
+	LDY	#1
+	LDA	(Buffer),Y ;CmdNum
+	STA	CMDCode
+	INY
+	LDA	(Buffer),Y ; CmdList
+	TAX
+	INY
+	LDA	(Buffer),Y ; CmdList+1
+	STA	Buffer+1
+	STX	Buffer
+	LDY	#8 ; >cmdlength-1
+copyloop
+	LDA	(Buffer),Y
+	STA	CMDCode,Y
+	DEY
+	BNE	copyloop
+SkipSPortCopy
+	LDY	Slot
+	LDA	ProFLAG,Y
+	BPL	CallSmartPort
+	LDA	ProDOSEx
+	BPL	CleanUp ; Always Jump
+CallSmartPort
+	LDA	SmartPortEx
+CleanUp
+	LDX	#0
+restoreZeroPage
+	PLA
+	STA	ZeroPage,X
+	INX
+	CPX	#$1C ;lenzeropageusage
+	BNE	restoreZeroPage
+	PLP
+	LDA	ret_Flags
+	PHA
+	LDY	ret_Y
+	LDX	ret_X
+	LDA	ret_A
+	PLP
+	RTS
+		
+BootC
+	STX	Slot
+	LDA	#$AA
+	STA	ProFLAG,X
+	LDY	#5 ;len(boot_params)
+bootloop
+	LDA	boot_params,Y
+	STA	CMDCode,Y
+	DEY
+	BPL	bootloop
+	LDA	Slot
+	ASL	A
+	ASL	A
+	ASL	A
+	ASL	A
+	STA	CMDUnit
+	JSR	atentry
+	BCS	bootfail
+	LDX	BOOT_SECT
+	DEX
+	BNE	bootfail
+	LDX	OS
+	BEQ	bootfail
+	LDA	CMDUnit
+	TAX
+	JMP	OS
+bootfail
+	JSR	SETVID
+	JSR	SETKBD
+	LDX	#$17
+	STX	CV
+	JSR	VTAB
+	LDA	#0
+	STA	CH
+	LDX	#0
+print_char
+	LDA	ErrMsgs,X
+	BEQ	finished
+	JSR	COUT
+	INX
+	BNE	print_char
+finished
+	JMP	BASIC
+ErrMsgs
+	.BYTE $C4
+	.BYTE $C9
+	.BYTE $D3
+	.BYTE $CB
+	.BYTE $A0
+	.BYTE $C5
+	.BYTE $D2
+	.BYTE $D2
+	.BYTE $CF
+	.BYTE $D2
+	.BYTE $A1
+	.BYTE 0 ; "DISK ERROR!",0
+boot_params
+	.BYTE	1
+	.BYTE	$50
+	.WORD	$800
+	.WORD	0
+*= $C5FC
+	.word $0000			; how many blocks are on the device.
+	.byte $BF 				; Removable, Un-Interruptable, 4 Units, Supports format/write/read/status
+	.byte <ProDOS_EP	; entry point offset for ProDOS
+.END

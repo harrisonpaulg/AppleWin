@@ -62,6 +62,12 @@ void CPropertySheet::Init(void)
 	PropSheetPages[PG_DISK].pszTemplate = MAKEINTRESOURCE(IDD_PROPPAGE_DISK);
 	PropSheetPages[PG_DISK].pfnDlgProc = (DLGPROC)CPageDisk::DlgProc;
 
+	PropSheetPages[PG_LIRON].dwSize = sizeof(PROPSHEETPAGE);
+	PropSheetPages[PG_LIRON].dwFlags = PSP_DEFAULT;
+	PropSheetPages[PG_LIRON].hInstance = g_hInstance;
+	PropSheetPages[PG_LIRON].pszTemplate = MAKEINTRESOURCE(IDD_PROPPAGE_LIRON);
+	PropSheetPages[PG_LIRON].pfnDlgProc = (DLGPROC)CPageLiron::DlgProc;
+
 	PropSheetPages[PG_ADVANCED].dwSize = sizeof(PROPSHEETPAGE);
 	PropSheetPages[PG_ADVANCED].dwFlags = PSP_DEFAULT;
 	PropSheetPages[PG_ADVANCED].hInstance = g_hInstance;

@@ -187,6 +187,12 @@
     <ClCompile Include="source\YamlHelper.cpp">
       <Filter>Source Files\Emulator</Filter>
     </ClCompile>
+    <ClCompile Include="source\Configuration\PageLiron.cpp">
+      <Filter>Source Files\Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Liron.cpp">
+      <Filter>Source Files\Disk</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Applewin.h">
@@ -458,6 +464,12 @@
     </ClInclude>
     <ClInclude Include="source\SaveState_Structs_v1.h">
       <Filter>Source Files\_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Configuration\PageLiron.h">
+      <Filter>Source Files\Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Liron.h">
+      <Filter>Source Files\Disk</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
