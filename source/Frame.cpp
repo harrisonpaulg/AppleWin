@@ -57,6 +57,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "Debugger/Debug.h"
 
 //#define ENABLE_MENU 0
+#define DEBUG_KEY_MESSAGES 0
 
 // 3D border around the 560x384 Apple II display
 #define  VIEWPORTX   5
@@ -1111,15 +1112,16 @@ LRESULT CALLBACK FrameWndProc (
 		case WM_CHAR:
 			if ((g_nAppMode == MODE_RUNNING) || (g_nAppMode == MODE_STEPPING) || (g_nAppMode == MODE_LOGO))
 			{
-				if( !g_bDebuggerEatKey )
+				if (!g_bDebuggerEatKey)
 				{
+#if DEBUG_KEY_MESSAGES
+					LogOutput("WM_CHAR: %08X\n", wparam);
+#endif
 					if (g_nAppMode != MODE_LOGO)	// !MODE_LOGO - not emulating so don't pass to the VM's keyboard
-						KeybQueueKeypress((int)wparam, ASCII);
+						KeybQueueKeypress(wparam, ASCII);
 				}
-				else
-				{
-					g_bDebuggerEatKey = false;
-				}
+
+				g_bDebuggerEatKey = false;
 			}
 			else if (g_nAppMode == MODE_DEBUG)
 			{
@@ -1306,19 +1308,19 @@ LRESULT CALLBACK FrameWndProc (
 			// CTRL+SHIFT+F9 Toggle 50% Scan Lines
 			// ALT+F9        Can't use Alt-F9 as Alt is Open-Apple = Joystick Button #1
 
-			if ( !g_bCtrlKey && !g_bShiftKey )		// F9
+			if ( !KeybGetCtrlStatus() && !KeybGetShiftStatus() )		// F9
 			{
 				g_eVideoType++;
 				if (g_eVideoType >= NUM_VIDEO_MODES)
 					g_eVideoType = 0;
 			}
-			else if ( !g_bCtrlKey && g_bShiftKey )	// SHIFT+F9
+			else if ( !KeybGetCtrlStatus() && KeybGetShiftStatus() )	// SHIFT+F9
 			{
 				if (g_eVideoType <= 0)
 					g_eVideoType = NUM_VIDEO_MODES;
 				g_eVideoType--;
 			}
-			else if ( g_bCtrlKey && g_bShiftKey )	// CTRL+SHIFT+F9
+			else if ( KeybGetCtrlStatus() && KeybGetShiftStatus() )		// CTRL+SHIFT+F9
 			{
 				g_uHalfScanLines = !g_uHalfScanLines;
 			}
@@ -1347,7 +1349,7 @@ LRESULT CALLBACK FrameWndProc (
 		}
 		else if (wparam == VK_F10)
 		{
-			if (g_Apple2Type == A2TYPE_PRAVETS8A && !g_bCtrlKey)
+			if (g_Apple2Type == A2TYPE_PRAVETS8A && !KeybGetCtrlStatus())
 			{
 				KeybToggleP8ACapsLock ();	// F10: Toggles P8 Capslock
 			}
@@ -1356,7 +1358,7 @@ LRESULT CALLBACK FrameWndProc (
 				SetUsingCursor(FALSE);		// Ctrl+F10
 			}
 		}
-		else if (wparam == VK_F11 && !g_bCtrlKey)	// Save state (F11)
+		else if (wparam == VK_F11 && !KeybGetCtrlStatus())	// Save state (F11)
 		{
 			SoundCore_SetFade(FADE_OUT);
 			if(sg_PropertySheet.SaveStateSelectImage(window, true))
@@ -1408,18 +1410,20 @@ LRESULT CALLBACK FrameWndProc (
 		}
 		else if ((g_nAppMode == MODE_RUNNING) || (g_nAppMode == MODE_LOGO) || (g_nAppMode == MODE_STEPPING))
 		{
-			// Note about Alt Gr (Right-Alt):
-			// . WM_KEYDOWN[Left-Control], then:
-			// . WM_KEYDOWN[Right-Alt]
+			// NB. Alt Gr (Right-Alt): this normally send 2 WM_KEYDOWN messages for: VK_LCONTROL, then VK_RMENU
+			// . NB. The keyboard hook filter now suppresses VK_LCONTROL
 			bool extended = (HIWORD(lparam) & KF_EXTENDED) != 0;
 			BOOL down     = 1;
 			BOOL autorep  = (HIWORD(lparam) & KF_REPEAT) != 0;
 			BOOL IsJoyKey = JoyProcessKey((int)wparam, extended, down, autorep);
 
+#if DEBUG_KEY_MESSAGES
+			LogOutput("WM_KEYDOWN: %08X (scanCode=%04X)\n", wparam, (lparam>>16)&0xfff);
+#endif
 			if (!IsJoyKey &&
 				(g_nAppMode != MODE_LOGO))	// !MODE_LOGO - not emulating so don't pass to the VM's keyboard
 			{
-				KeybQueueKeypress((int)wparam, NOT_ASCII);
+				KeybQueueKeypress(wparam, NOT_ASCII);
 
 				if (!autorep)
 					KeybAnyKeyDown(WM_KEYDOWN, wparam, extended);
@@ -1449,6 +1453,9 @@ LRESULT CALLBACK FrameWndProc (
 			BOOL autorep  = 0;
 			BOOL bIsJoyKey = JoyProcessKey((int)wparam, extended, down, autorep);
 
+#if DEBUG_KEY_MESSAGES
+			LogOutput("WM_KEYUP: %08X\n", wparam);
+#endif
 			if (!bIsJoyKey)
 				KeybAnyKeyDown(WM_KEYUP, wparam, extended);
 		}
@@ -1767,7 +1774,7 @@ LRESULT CALLBACK FrameWndProc (
 
 		// http://msdn.microsoft.com/en-us/library/windows/desktop/gg153546(v=vs.85).aspx
 		// v1.25.0: Alt-Return Alt-Enter toggle fullscreen
-		if (g_bAltEnter_ToggleFullScreen && g_bAltKey && (wparam == VK_RETURN)) // NB. VK_RETURN = 0x0D; Normally WM_CHAR will be 0x0A but ALT key triggers as WM_SYSKEYDOWN and VK_MENU
+		if (g_bAltEnter_ToggleFullScreen && KeybGetAltStatus() && (wparam == VK_RETURN)) // NB. VK_RETURN = 0x0D; Normally WM_CHAR will be 0x0A but ALT key triggers as WM_SYSKEYDOWN and VK_MENU
 			return 0; // NOP -- eat key
 
 		PostMessage(window,WM_KEYDOWN,wparam,lparam);
@@ -1781,7 +1788,7 @@ LRESULT CALLBACK FrameWndProc (
 		KeybUpdateCtrlShiftStatus();
 
 		// v1.25.0: Alt-Return Alt-Enter toggle fullscreen
-		if (g_bAltEnter_ToggleFullScreen && g_bAltKey && (wparam == VK_RETURN)) // NB. VK_RETURN = 0x0D; Normally WM_CHAR will be 0x0A but ALT key triggers as WM_SYSKEYDOWN and VK_MENU
+		if (g_bAltEnter_ToggleFullScreen && KeybGetAltStatus() && (wparam == VK_RETURN)) // NB. VK_RETURN = 0x0D; Normally WM_CHAR will be 0x0A but ALT key triggers as WM_SYSKEYDOWN and VK_MENU
 			ScreenWindowResize(false);
 		else
 			PostMessage(window,WM_KEYUP,wparam,lparam);
@@ -1964,7 +1971,7 @@ static void ProcessButtonClick(int button, bool bFromButtonUI /*=false*/)
 
     case BTN_RUN:
 		KeybUpdateCtrlShiftStatus();
-		if( g_bCtrlKey )
+		if( KeybGetCtrlStatus() )
 		{
 			CtrlReset();
 			if (g_nAppMode == MODE_DEBUG)
@@ -2015,7 +2022,7 @@ static void ProcessButtonClick(int button, bool bFromButtonUI /*=false*/)
 
     case BTN_FULLSCR:
 		KeybUpdateCtrlShiftStatus();
-		ScreenWindowResize(g_bCtrlKey);
+		ScreenWindowResize( KeybGetCtrlStatus() );
       break;
 
     case BTN_DEBUG:
