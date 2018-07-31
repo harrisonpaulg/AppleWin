@@ -414,6 +414,12 @@ static void ParseSlots(YamlLoadHelper& yamlLoadHelper, UINT version)
 			m_ConfigNew.m_bEnableHDD = true;
 			type = CT_GenericHDD;
 		}
+		else if (card == Liron_GetSnapshotCardName())
+		{
+			bRes = Liron_LoadSnapshot(yamlLoadHelper, slot, version, g_strSaveStatePath);
+			m_ConfigNew.m_bEnableLiron = true;
+			type = CT_Liron;
+		}
 		else
 		{
 			bIsCardSupported = false;
@@ -495,6 +501,7 @@ static void Snapshot_LoadState_v2(void)
 		PravetsReset();
 		DiskReset();
 		HD_Reset();
+		Liron_Reset();
 		KeybReset();
 		VideoResetState();
 		MB_Reset();
@@ -612,6 +619,9 @@ void Snapshot_SaveState(void)
 			if (g_Slot4 == CT_Phasor)
 				Phasor_SaveSnapshot(yamlSaveHelper, 4);
 
+			if (g_Slot5 == CT_Liron)
+				Liron_SaveSnapshot(yamlSaveHelper, 5);
+
 			DiskSaveSnapshot(yamlSaveHelper);
 
 			HD_SaveSnapshot(yamlSaveHelper);
@@ -637,17 +647,19 @@ void Snapshot_Startup()
 
 	Snapshot_LoadState();
 
-	bDone = true;
+	bDone = true;	// Prevents a g_bRestart from loading an old save-state
 }
 
 void Snapshot_Shutdown()
 {
 	static bool bDone = false;
 
+	_ASSERT(!bDone);
+	_ASSERT(!g_bRestart);
 	if(!g_bSaveStateOnExit || bDone)
 		return;
 
 	Snapshot_SaveState();
 
-	bDone = true;
+	bDone = true;	// Debug flag: this func should only be called once, and never on a g_bRestart
 }
